@@ -19,7 +19,7 @@ lexer.h lexer.cpp: lexer.l
 parser.h parser.cpp: parser.y
 	$(BISON) -d -v -o parser.cpp $(PARSER)
 ifndef USE_BISON_3.8
-	echo "\n#include \"ASTNode.h\"\n\nASTNode* parse_expression(const char* input);" >> parser.hpp
+	echo "\n#include \"ASTNode.h\"\n\nASTNode* parse_expression(const char* input);" >> parser.h
 endif
 #	echo "\n#include <vector>\n#include<string>\n\nstd::vector<std::string> parse_expression(const char* input);" >> parser.hpp
 
