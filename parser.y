@@ -7,7 +7,7 @@
  #include <vector>
  #include <iostream>
  #include "lexer.h"
- #include "ASTNode.h"
+ #include "../ASTNode.h"
   
   extern int yyparse(std::stack<ASTNode*>* expr_stack);
 
