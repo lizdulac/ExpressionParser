@@ -1,6 +1,6 @@
 #include <string>
 #include <iostream>
-#include "parser.hpp"
+#include "parser.h"
 //#include "ASTNode.h"
 
 int main(int argc, char **argv) {
