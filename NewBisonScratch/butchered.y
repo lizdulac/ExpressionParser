@@ -1,4 +1,5 @@
 %code requires {
+  /*
  #ifndef EXPRESSION_PARSER_H_
  #define EXPRESSION_PARSER_H_
  #include <stdio.h>
@@ -10,7 +11,8 @@
  #include <iostream>
  #include "ASTNode.h"
  #endif
-
+  */
+  
   /* Probably unnecessary
  typedef struct YYLTYPE
 {
@@ -36,6 +38,7 @@
 }
 
 %code provides {
+  /*
   //#include "lexer.h"
   
   extern int yyparse(std::stack<ASTNode*>*);
@@ -47,14 +50,18 @@
   void yyerror(std::stack<ASTNode*>*, const char *msg);
 
   ASTNode* parse_expression(const char* input);
+  */
+  extern int yyparse();
+  void yyerror(const char *msg);
  }
-
+    /*
 %language "C++"
 %define parse.error verbose
 %parse-param {std::stack<ASTNode*>* expr_stack}
 %locations
-
+    */
 %start input
+ /*
 %token COMMA L_PAREN R_PAREN ENDL
 %token FUNCTION
 %token OPERATOR
@@ -66,14 +73,15 @@
 %type <sval> FUNCTION OPERATOR
 %type <expr_ptr> input exp
 %type <ival> list
-
+ */
 
 %% 
 
-input:                  {}
+input:                  {};
+/*
                         | ENDL input             {}
                         | decl input             {}
-                        | exp input              { /*yyparse_value = $1->expression;*/ }
+| exp input              { /*yyparse_value = $1->expression;*//* }
 			;
 
 decl:                   ALIAS PATH               { ASTNode::add_lookup_entry($1, $2, ""); }
@@ -96,8 +104,21 @@ exp:                    ALIAS                  { $$ = createExpr(expr_stack, "AL
 | exp OPERATOR exp { $$ = createExpr(expr_stack, $2, "", 0, 2); }
 | FUNCTION L_PAREN list R_PAREN { $$ = createExpr(expr_stack, $1, "", 0, $3); }
 			;
+							      */
 %%
 
+
+// DUMMY FNS - REPLACE
+extern int yyparse()
+{
+  return 0;
+}
+
+void yyerror(const char *msg)
+{
+}
+
+			/*
 void* createExpr(std::stack<ASTNode*>* expr_stack, std::string str_op, const char* name, double value, size_t numsubexprs) {
   std::cout << "Creating ASTNode in function createExpr" << std::endl;
   std::cout << "\tstack size: " << expr_stack->size() << "\n\top: " << str_op << "\n\tname: " << name << "\n\tvalue: " << value << "\n\tnumsubexprs: " << numsubexprs << std::endl;
@@ -151,4 +172,5 @@ void yyerror(std::stack<ASTNode*>* expr_stack, const char *msg) {
   //printf("** Line %d: %s\n", yylloc.first_line, msg);
 }
 
+			*/
 
