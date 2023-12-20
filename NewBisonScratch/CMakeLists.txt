@@ -28,8 +28,8 @@ find_package(FLEX)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${PARSER_SOURCE})
 add_executable(simple-test
-  ${PARSER_SOURCE}/driver.cpp
-  ${PARSER_SOURCE}/driver.h
+  ${PARSER_SOURCE}/ASTNode.cpp
+  ${PARSER_SOURCE}/ASTNode.h
   ${BISON_MyParser_OUTPUTS}
   ${FLEX_MyScanner_OUTPUTS}
 )

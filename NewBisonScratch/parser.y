@@ -29,11 +29,11 @@
 
 %code requires {
   # include <string>
-  class driver;
+  class ASTNode;
 }
 
 // The parsing context.
-%param { driver& drv }
+%param { ASTNode& drv }
 
 %locations
 
@@ -42,7 +42,7 @@
 %define parse.lac full
 
 %code {
-# include "driver.h"
+# include "ASTNode.h"
 }
 
 %define api.token.prefix {TOK_}

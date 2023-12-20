@@ -23,7 +23,7 @@
 # include <cstdlib>
 # include <cstring> // strerror
 # include <string>
-# include "driver.h"
+# include "ASTNode.h"
 # include "parser.h"
 %}
 
@@ -116,7 +116,7 @@ blank [ \t\r]
 %}
 %%
 %{
-  // A handy shortcut to the location held by the driver.
+  // A handy shortcut to the location held by the ASTNode.
   yy::location& loc = drv.location;
   // Code run each time yylex is called.
   loc.step ();
@@ -152,7 +152,7 @@ make_NUMBER (const std::string &s, const yy::parser::location_type& loc)
 }
 
 void
-driver::scan_begin ()
+ASTNode::scan_begin ()
 {
   yy_flex_debug = trace_scanning;
   if (file.empty () || file == "-")
@@ -165,7 +165,7 @@ driver::scan_begin ()
 }
 
 void
-driver::scan_end ()
+ASTNode::scan_end ()
 {
   fclose (yyin);
 }
