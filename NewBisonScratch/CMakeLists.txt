@@ -27,7 +27,8 @@ find_package(FLEX)
 # endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${PARSER_SOURCE})
-add_executable(simple-test
+add_executable(simple-test 
+  ${PARSER_SOURCE}/driver.cpp
   ${PARSER_SOURCE}/ASTNode.cpp
   ${PARSER_SOURCE}/ASTNode.h
   ${BISON_MyParser_OUTPUTS}
