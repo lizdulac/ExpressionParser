@@ -28,6 +28,7 @@
 %define parse.assert
 
 %code requires {
+  #include <vector>
   # include <string>
   class ASTNode;
 }
@@ -47,6 +48,10 @@
 
 %define api.token.prefix {TOK_}
 %token
+  COMMA
+  L_PAREN
+  R_PAREN
+  ENDL
   ASSIGN  ":="
   MINUS   "-"
   PLUS    "+"
@@ -56,11 +61,15 @@
   RPAREN  ")"
 ;
 
+%token <double> NUM
+%token <std::string> ALIAS
+%token <std::string> PATH
+%token <std::string> FUNCTION
+%token <std::string> OPERATOR
+%token <std::vector<size_t>> INDICES
 %token <std::string> IDENTIFIER "identifier"
 %token <int> NUMBER "number"
 %nterm <int> exp
-
-%printer { yyo << $$; } <*>;
 
 %%
 %start unit;

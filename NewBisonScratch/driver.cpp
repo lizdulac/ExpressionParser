@@ -1,18 +1,17 @@
+#include <string>
+#include <iostream>
 #include "ASTNode.h"
 
 int
 main (int argc, char *argv[])
 {
-  int res = 0;
   ASTNode drv;
-  for (int i = 1; i < argc; ++i)
-    if (argv[i] == std::string ("-p"))
-      drv.trace_parsing = true;
-    else if (argv[i] == std::string ("-s"))
-      drv.trace_scanning = true;
-    else if (!drv.parse (argv[i]))
-      std::cout << drv.result << '\n';
-    else
-      res = 1;
-  return res;
+  char* str_expr = "one := 1\ntwo := 2\nthree := 3\n(one + two * three) * two * three";
+  std::cout << "Parse input: " << str_expr << std::endl;
+
+  int result = drv.parse(str_expr);
+
+  std::cout << "Result: " << result << std::endl;
+  
+  return 0;
 }

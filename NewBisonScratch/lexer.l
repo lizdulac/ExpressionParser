@@ -151,21 +151,12 @@ make_NUMBER (const std::string &s, const yy::parser::location_type& loc)
   return yy::parser::make_NUMBER ((int) n, loc);
 }
 
-void
-ASTNode::scan_begin ()
+int
+ASTNode::parse (const char* input)
 {
-  yy_flex_debug = trace_scanning;
-  if (file.empty () || file == "-")
-    yyin = stdin;
-  else if (!(yyin = fopen (file.c_str (), "r")))
-    {
-      std::cerr << "cannot open " << file << ": " << strerror (errno) << '\n';
-      exit (EXIT_FAILURE);
-    }
-}
-
-void
-ASTNode::scan_end ()
-{
-  fclose (yyin);
+  yy::parser parse (*this);
+  yy_scan_string(input);
+  parse.set_debug_level (trace_parsing);
+  int res = parse ();
+  return res;
 }
