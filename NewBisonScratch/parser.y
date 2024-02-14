@@ -1,40 +1,22 @@
-/* Parser for calc++.   -*- C++ -*-
-
-   Copyright (C) 2005-2015, 2018-2021 Free Software Foundation, Inc.
-
-   This file is part of Bison, the GNU Compiler Compiler.
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
-
 %skeleton "lalr1.cc" // -*- C++ -*-
 %require "3.8.2"
 %header
 
 %define api.token.raw
-
+%define api.namespace {adios2::detail}
 %define api.token.constructor
 %define api.value.type variant
 %define parse.assert
 
 %code requires {
+  #include <tuple>
   #include <vector>
-  # include <string>
-  class ASTNode;
+  #include <string>
+  class ASTDriver;
 }
 
 // The parsing context.
-%param { ASTNode& drv }
+%param { ASTDriver& drv }
 
 %locations
 
@@ -43,59 +25,92 @@
 %define parse.lac full
 
 %code {
-# include "ASTNode.h"
+#include "ASTDriver.h"
+#include "ASTNode.h"
 }
 
 %define api.token.prefix {TOK_}
 %token
-  COMMA
-  L_PAREN
-  R_PAREN
-  ENDL
   ASSIGN  ":="
-  MINUS   "-"
-  PLUS    "+"
-  STAR    "*"
-  SLASH   "/"
-  LPAREN  "("
-  RPAREN  ")"
+  COMMA   ","
+  COLON   ":"
+  L_PAREN "("
+  R_PAREN ")"
+  L_BRACE "["
+  R_BRACE "]"
+  ENDL    "\n"
+  VAR     "var"
 ;
 
+/*
 %token <double> NUM
 %token <std::string> ALIAS
 %token <std::string> PATH
 %token <std::string> FUNCTION
+*/
 %token <std::string> OPERATOR
+/*
 %token <std::vector<size_t>> INDICES
+*/
 %token <std::string> IDENTIFIER "identifier"
-%token <int> NUMBER "number"
+%token <std::string> VARNAME
+%token <int> INT "number"
 %nterm <int> exp
+%nterm <int> list
+%nterm <std::vector<std::tuple<int, int, int>>> indices_list
+%nterm <std::tuple<int, int, int>> index
 
 %%
 %start unit;
-unit: assignments exp  { drv.result = $2; };
+unit: assignments exp  { /*drv.root = $2;*//*drv.result = $2;*/ };
 
 assignments:
   %empty                 {}
-| assignments assignment {};
+| VAR assignment ENDL assignments {}
 
 assignment:
-  "identifier" ":=" exp { drv.variables[$1] = $3; };
+  IDENTIFIER ASSIGN VARNAME { drv.add_lookup_entry($1,  $3); }
+| IDENTIFIER ASSIGN IDENTIFIER { drv.add_lookup_entry($1,  $3); }
+| IDENTIFIER ASSIGN VARNAME L_BRACE indices_list R_BRACE { drv.add_lookup_entry($1, $3, $5); }
+| IDENTIFIER ASSIGN IDENTIFIER L_BRACE indices_list R_BRACE { drv.add_lookup_entry($1, $3, $5); };
 
-%left "+" "-";
-%left "*" "/";
+indices_list:
+indices_list COMMA index { $1.push_back($3); $$ = $1; }
+| index { $$ = {$1}; }
+| %empty { $$ = {}; };
+
+index:
+INT COLON INT COLON INT { $$ = {$1, $3, $5}; }
+| COLON INT COLON INT   { $$ = {-1, $2, $4}; }
+| INT COLON COLON INT   { $$ = {$1, -1, $4}; }
+| INT COLON INT COLON   { $$ = {$1, $3,  1}; }
+| INT COLON INT         { $$ = {$1, $3,  1}; }
+| COLON COLON INT       { $$ = {-1, -1, $3}; }
+| COLON INT COLON       { $$ = {-1, $2,  1}; }
+| COLON INT             { $$ = {-1, $2,  1}; }
+| INT COLON COLON       { $$ = {$1, -1,  1}; }
+| INT COLON             { $$ = {$1, -1,  1}; }
+| INT                   { $$ = {$1, $1,  1}; }
+| %empty                { $$ = {-1, -1,  1}; }
+;
+
 exp:
   "number"
-| "identifier"  { $$ = drv.variables[$1]; }
-| exp "+" exp   { $$ = $1 + $3; }
-| exp "-" exp   { $$ = $1 - $3; }
-| exp "*" exp   { $$ = $1 * $3; }
-| exp "/" exp   { $$ = $1 / $3; }
-| "(" exp ")"   { $$ = $2; }
+| exp OPERATOR exp   { drv.createNode($2, 2); }
+| IDENTIFIER "(" list ")" { drv.createNode($1, $3); }
+| IDENTIFIER "[" indices_list "]" { drv.createNode($1, $3); }
+| IDENTIFIER  { drv.createNode($1); }
+| "(" exp ")"   {  }
+;
+
+list:
+exp COMMA list { $$ = $3 + 1; }
+| exp { $$ = 1; }
+| %empty { $$ = 0; }
 %%
 
 void
-yy::parser::error (const location_type& l, const std::string& m)
+adios2::detail::parser::error (const location_type& l, const std::string& m)
 {
   std::cerr << l << ": " << m << '\n';
 }

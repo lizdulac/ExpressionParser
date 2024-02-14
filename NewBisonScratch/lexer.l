@@ -23,7 +23,7 @@
 # include <cstdlib>
 # include <cstring> // strerror
 # include <string>
-# include "ASTNode.h"
+#include "ASTDriver.h"
 # include "parser.h"
 %}
 
@@ -102,11 +102,14 @@
 
 %{
   // A number symbol corresponding to the value in S.
-  yy::parser::symbol_type
-  make_NUMBER (const std::string &s, const yy::parser::location_type& loc);
+  adios2::detail::parser::symbol_type
+  make_INT (const std::string &s, const adios2::detail::parser::location_type& loc);
 %}
 
-id    [a-zA-Z][a-zA-Z_0-9]*
+op    [-+*/^]
+var   "var"
+id    [a-zA-Z][a-zA-Z_0-9_]*
+path  [a-zA-Z][a-zA-Z0-9_\\./-]*
 int   [0-9]+
 blank [ \t\r]
 
@@ -116,47 +119,51 @@ blank [ \t\r]
 %}
 %%
 %{
-  // A handy shortcut to the location held by the ASTNode.
-  yy::location& loc = drv.location;
+  // A handy shortcut to the location held by the ASTDriver.
+  adios2::detail::location& loc = drv.location;
   // Code run each time yylex is called.
   loc.step ();
 %}
 {blank}+   loc.step ();
-\n+        loc.lines (yyleng); loc.step ();
+\n+        loc.lines (yyleng); loc.step (); return adios2::detail::parser::make_ENDL (loc);
 
-"-"        return yy::parser::make_MINUS  (loc);
-"+"        return yy::parser::make_PLUS   (loc);
-"*"        return yy::parser::make_STAR   (loc);
-"/"        return yy::parser::make_SLASH  (loc);
-"("        return yy::parser::make_LPAREN (loc);
-")"        return yy::parser::make_RPAREN (loc);
-":="       return yy::parser::make_ASSIGN (loc);
+":="       return adios2::detail::parser::make_ASSIGN  (loc);
+","        return adios2::detail::parser::make_COMMA   (loc);
+":"        return adios2::detail::parser::make_COLON   (loc);
+"("        return adios2::detail::parser::make_L_PAREN (loc);
+")"        return adios2::detail::parser::make_R_PAREN (loc);
+"["        return adios2::detail::parser::make_L_BRACE (loc);
+"]"        return adios2::detail::parser::make_R_BRACE (loc);
 
-{int}      return make_NUMBER (yytext, loc);
-{id}       return yy::parser::make_IDENTIFIER (yytext, loc);
+{int}      return make_INT (yytext, loc);
+{var}      return adios2::detail::parser::make_VAR (loc);
+{op}       return adios2::detail::parser::make_OPERATOR (yytext, loc);
+{id}       return adios2::detail::parser::make_IDENTIFIER (yytext, loc);
+{path}     return adios2::detail::parser::make_VARNAME (yytext, loc);
 .          {
-             throw yy::parser::syntax_error
+             throw adios2::detail::parser::syntax_error
                (loc, "invalid character: " + std::string(yytext));
 }
-<<EOF>>    return yy::parser::make_YYEOF (loc);
+<<EOF>>    return adios2::detail::parser::make_YYEOF (loc);
 %%
 
-yy::parser::symbol_type
-make_NUMBER (const std::string &s, const yy::parser::location_type& loc)
+adios2::detail::parser::symbol_type
+make_INT (const std::string &s, const adios2::detail::parser::location_type& loc)
 {
   errno = 0;
   long n = strtol (s.c_str(), NULL, 10);
   if (! (INT_MIN <= n && n <= INT_MAX && errno != ERANGE))
-    throw yy::parser::syntax_error (loc, "integer is out of range: " + s);
-  return yy::parser::make_NUMBER ((int) n, loc);
+    throw adios2::detail::parser::syntax_error (loc, "integer is out of range: " + s);
+  return adios2::detail::parser::make_INT ((int) n, loc);
 }
 
-int
-ASTNode::parse (const char* input)
+ASTNode*
+ASTDriver::parse (const char* input)
 {
-  yy::parser parse (*this);
+  adios2::detail::parser parse (*this);
   yy_scan_string(input);
   parse.set_debug_level (trace_parsing);
-  int res = parse ();
-  return res;
+  parse ();
+  std::cout << "Parsed input: " << input << std::endl;
+  return getAST();
 }

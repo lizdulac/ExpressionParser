@@ -1,55 +1,37 @@
-/* Driver for calc++.   -*- C++ -*-
-
-   Copyright (C) 2005-2015, 2018-2021 Free Software Foundation, Inc.
-
-   This file is part of Bison, the GNU Compiler Compiler.
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
-
 #ifndef ASTNODE_HH
 # define ASTNODE_HH
-# include <string>
-# include <map>
-# include "parser.h"
+#include <vector>
+#include <string>
+#include <tuple>
 
-// Give Flex the prototype of yylex we want ...
-# define YY_DECL \
-  yy::parser::symbol_type yylex (ASTNode& drv)
-// ... and declare it for the parser's sake.
-YY_DECL;
-
-// Conducting the whole scanning and parsing of Calc++.
 class ASTNode
 {
 public:
   ASTNode ();
+  ASTNode (std::string);
+  ASTNode (std::string, size_t);
+  ASTNode (std::string, std::string);
+  ASTNode (std::string, std::vector<std::tuple<int, int, int>>);
 
-  std::map<std::string, int> variables;
+  void set_num_subexprs(size_t);
+  void pushback_subexpr(ASTNode*);
+  void insert_subexpr_n(ASTNode*, size_t);
+  std::string printpretty(std::string);
 
-  int result;
+  std::vector<ASTNode*> get_subexprs();
+  std::string get_opname();
+  std::string get_alias();
+  std::string get_varname();
+  std::vector<std::tuple<int, int, int>> get_indices();
+  void set_varname(const std::string);
+  void set_indices(const std::vector<std::tuple<int, int, int>>);
 
-  // Run the parser on string input
-  int parse (const char* input);
-  // The name of the file being parsed.
-  std::string file;
-  // Whether to generate parser debug traces.
-  bool trace_parsing;
-
-  // Whether to generate scanner debug traces.
-  bool trace_scanning;
-  // The token's location used by the scanner.
-  yy::location location;
+private:
+  std::vector<ASTNode*> sub_exprs;
+  std::string opname;
+  std::string alias;
+  std::string varname;
+  std::vector<std::tuple<int, int, int>> indices;
 };
 #endif // ! ASTNODE_HH
 

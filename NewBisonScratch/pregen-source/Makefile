@@ -10,7 +10,7 @@ BISON = /usr/bin/bison
 PARSER = parser.y
 endif
 
-simple-c: $(PARSER_SOURCE)/driver.cpp $(PARSER_SOURCE)/ASTNode.cpp lexer.cpp parser.cpp
+simple-c: $(PARSER_SOURCE)/driver.cpp $(PARSER_SOURCE)/ASTDriver.cpp $(PARSER_SOURCE)/ASTNode.cpp lexer.cpp parser.cpp
 	$(CC) $(OPT) $^ -o $@
 
 lexer.h lexer.cpp: $(PARSER_SOURCE)/lexer.l
@@ -24,4 +24,4 @@ ifndef USE_BISON_3.8
 endif
 
 clean:
-	rm *.o *~ lexer.cpp lexer.h parser.cpp parser.h parser.hpp parser.output simple-c
+	rm *.o *~ lexer.cpp lexer.h parser.cpp parser.h parser.hpp parser.output location.hh simple-c
